@@ -51,3 +51,32 @@ ON nyc_yellow_taxi_trips_2016_06_01 (tpep_pickup_datetime);
 /*File should contain 368,774 rows*/
 
 SELECT count(*) FROM nyc_yellow_taxi_trips_2016_06_01; 
+
+/*Finding pickups by hour*/
+SELECT 
+	date_part('hour', tpep_pickup_datetime) AS trip_hour,
+	count(*)	
+FROM nyc_yellow_taxi_trips_2016_06_01
+GROUP BY trip_hour
+ORDER BY trip_hour;
+
+/*Export to Excel for line-chart*/
+COPY 
+	(SELECT 
+	date_part('hour', tpep_pickup_datetime) AS trip_hour,
+	count(*)	
+FROM nyc_yellow_taxi_trips_2016_06_01
+GROUP BY trip_hour
+ORDER BY trip_hour)
+TO '/Users/alexander.sessums/Desktop/yellow_tripdata_2016_06_01.csv'
+WITH (FORMAT CSV, HEADER, DELIMITER ',');
+
+/*Finding median trip time aka when do trips take the longest*/
+SELECT
+	date_part('hour', tpep_pickup_datetime) AS trip_hour,
+	percentile_cont(.5)
+		 WITHIN GROUP (ORDER BY
+			tpep_dropoff_datetime - tpep_pickup_datetime) AS median_trip
+FROM nyc_yellow_taxi_trips_2016_06_01
+GROUP BY trip_hour
+ORDER BY trip_hour;
